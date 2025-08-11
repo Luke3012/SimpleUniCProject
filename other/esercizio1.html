@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Esercizio 1 - Tartaglia Luca</title>
+    <style>
+        a:link, a:visited {
+            background-color: cornflowerblue;
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        a:hover, a:active {
+            background-color: black;
+        }
+    </style>
+</head>
+<body style="color: rgb(255, 255, 255); background-color: rgb(0, 0, 0)">
+
+    <a id="top"></a>
+    <!--Serve per tornare in alto, quando si e' in fondo alla pagina-->
+
+    <div style="text-align: center; font-family: Verdana">
+        <h1><span style="text-decoration: underline">Progetto Cellule</span></h1>
+        <img src="../images/menu_cellule.png" alt="Menu' del programma" width="500" height="220"><br>
+        <br>
+        <a href="../index.html">Ritorna alla pagina pricipale</a>
+        <a href="../C/cellule.C" target="_blank">Apri il File C</a>
+        <a href="esercizio2.html">Vai all'esercizio 2</a> <br />
+        <br>
+    </div>
+
+    <div style="text-align: justify; font-family: Verdana">
+        <h1>Testo:</h1>
+        <br>
+        Algoritmo di simulazione di popolazioni di cellule. <br />
+        L’algoritmo considera una scacchiera di 80x80 caselle e dispone a caso (usando la function rand) 
+        1000 oggetti (la posizione e' una coppia di numeri interi). L’algoritmo deve visualizzare la scacchiera, 
+        mostrando un ‘ ’ per le caselle non occupate e mostrando una ‘*’ per le caselle occupate dagli oggetti. <br />
+        L’algoritmo effettua la seguente simulazione.<br />
+        Ogni casella rappresenta una “cellula”, e in particolare una casella non occupata e' una
+        cellula “bianca” e una casella occupata e' una cellula “nera”. La scacchiera e' dunque una
+        “fotografia” a un certo istante (passo) della popolazione di cellule bianche e nere. Le
+        cellule evolvono secondo la seguente legge: a ogni passo, ogni cellula considera il
+        numero totale di cellule nere presenti nelle 9 caselle vicine (la casella della cellula stessa
+        e le 8 caselle adiacenti, comprese le 4 sulle diagonali). Se il totale e' minore di 4, allora la
+        cellula diventa bianca al prossimo passo, mentre se il totale e' maggiore di 6 allora
+        diventa nera. Se il totale e' esattamente 5, allora la cellula diventa bianca, e se il totale e'
+        esattamente 4, allora diventa nera. Fare attenzione al fatto che la scacchiera deve essere
+        aggiornata solo alla fine di ogni passo: ciò significa che l’algoritmo deve usare un array
+        per memorizzare la scacchiera attuale e un array per memorizzare la scacchiera
+        modificata. Inoltre si deve considerare che la scacchiera “non ha bordi”, ovvero il bordo
+        nord e quello sud devono essere considerati contigui e il bordo est e quello ovest devono
+        essere considerati contigui. L’algoritmo deve visualizzare la scacchiera ai seguenti passi:
+        1,2,3,4,5,10,20,30,40,50,100,50,200,250,300,350,400,450,500,550,600,700,800,
+        indicando sempre con ‘ ‘ una cellula bianca e con ‘*’ una cellula nera.
+        <br>
+        <br>
+        <br>
+        <br>
+
+        <h1>Osserviamo:</h1>
+        Questo esercizio considera una scacchiera di 80x80 caselle e dispone a caso (usando la function rand) 1000 oggetti.
+        L’algoritmo deve visualizzare la scacchiera, mostrando uno spazio vuoto per le caselle non occupate e un asterisco per
+        le caselle occupate dagli oggetti. La scacchiera viene considerata come una "fotografia" a ogni istante (o passo) della popolazione di cellule bianche oppure nere.<br />
+        A ogni passo, ogni cellula considera le 9 cellule vicine (ovvero, la casella della cellula stessa e le 8 caselle adiacenti).
+        Le regole sono le seguenti:<br>
+        1) Se il totale e' minore di 4, allora la cellula diventerà bianca al prossimo passo<br />
+        2) Se il totale e' maggiore di 6 allora diventerà nera<br />
+        3) Se il totale e' esattamente 5, allora la cellula diventerà bianca<br />
+        4) Se il totale e' esattamente 4, allora diventerà nera<br />
+        <br />
+        Le modifiche vengono effettuate su un array di appoggio, soltanto alla fine di ogni procedura verranno copiate nell'array principale. <br />
+        Dopodiché la scacchiera appena modificata, viene mostrata a video solo in determinati passi.<br>
+        <br><br><br>
+
+        <h1>Algoritmo:</h1>
+        <pre><span style="font-family: 'Times New Roman'">
+    #define _CRT_SECURE_NO_WARNINGS <span style="color:lawngreen">//utilizzo questa dicitura per evitare di far generare dei warnings all'IDE Visual Studio</span>
+    #include &#60;stdio.h&#62;
+    #include &#60;stdlib.h&#62;
+    #include &#60;time.h&#62;
+
+    #define lunghezza 80
+    #define larghezza 80
+
+    <span style="color:lawngreen">//Definizioni</span>
+    char scacchiera[lunghezza][larghezza]; <span style="color:lawngreen">//Genera la scacchiera principale, di grandezza 80x80 </span>
+    char scacchiera_mod[lunghezza][larghezza]; <span style="color:lawngreen">//Genera una scacchiera secondaria per il rimescolamento</span>
+
+    void scegli();
+    void imposta_scacchiera();
+    void visualizza_scacchiera(char [][larghezza]);
+    void rimescola_dati();
+
+<span style="color:lawngreen">
+    /* Qui non accade nulla di speciale. Viene richiamata la procedura 'scegli', ovvero il menu' principale */</span>
+    void main()
+    {
+    printf("Progetto d'Esame di Laboratorio\nTitolo Progetto: Cellule\nStudente: Tartaglia Luca\n\n");
+
+    imposta_scacchiera();
+    }
+
+    <span style="color:lawngreen">/* Menu' principale del programma.
+    - Inseriamo 1 se vogliamo visualizzare la scacchiera
+    - Inseriamo 2 se vogliamo rimescolare i dati secondo l'algoritmo richiesto dal problema
+    - Inseriamo 3 se vogliamo effettuare le simulazioni che richiede la traccia dell'esercizio
+    */</span>
+    void scegli()
+    {
+        printf("\n---MENU PRINCIPALE---\nEffettua una scelta:\n");
+        printf(" [1] Visualizza la scacchiera\n [2] Rimescola i dati in modo casuale\n [3] Effettua la simulazione\n");
+
+        int scelta = 0;
+        scanf("%d", &scelta);
+
+        switch (scelta) {
+            case 1:
+                visualizza_scacchiera(scacchiera);
+                scegli();
+                break;
+            case 2:
+                imposta_scacchiera();
+                break;
+                case 3:
+                rimescola_dati();
+                break;
+            default:
+                printf("\nLa scelta effettuata non e' valida!\n");
+                scegli();
+                break;
+           }
+    }
+
+    <span style="color:lawngreen">/* Questa function setta la scacchiera principale come un insieme di spazi vuoti e genera 1000 posizioni casuali tramite una function rand */</span>
+    void imposta_scacchiera()
+    {
+        int i, j;
+
+        <span style="color:lawngreen">//Inizializza la scacchiera impostando gli spazi vuoti</span>
+        for (i = 0; i < lunghezza; i++)
+            for (j = 0; j < larghezza; j++)
+                scacchiera[i][j] = ' ';
+
+        srand(time(NULL));
+
+        <span style="color:lawngreen">//Genera 1000 numeri casuali per la scacchiera</span>
+        for (i = 1; i <= 1000; i++)
+            <span style="color:lawngreen">//genera a caso una posizione nella scacchiera</span>
+            scacchiera[rand()%larghezza][rand () % lunghezza] = '*';
+
+        scegli();
+    }
+
+    <span style="color:lawngreen">/* Algoritmo per visualizzare la scacchiera.
+    Prende in input la scacchiera che si desidera visualizzare e procede con la stampa sullo schermo.
+    */</span>
+    void visualizza_scacchiera(char s[][larghezza])
+    {
+        int i, j;
+
+        <span style="color:lawngreen">//Questo costrutto viene utilizzato per delle piccole finezze estetiche</span>
+        for (i = 0; i < larghezza + 2; i++)
+        printf("-");
+
+        printf("\n");
+
+        for (i = 0; i < lunghezza; i++)
+        {
+            printf("|"); <span style="color:lawngreen">//Per visualizzare il limite sinistro della scacchiera</span>
+            for (j = 0; j < larghezza; j++)
+            {
+                printf("%c", s[i][j]);
+            }
+            printf("| %d\n", i + 1); <span style="color:lawngreen">//Per visualizzare il limite destro della scacchiera e il numero della riga</span>
+        }
+
+        <span style="color:lawngreen">//Altre semplici finezze estetiche, uguale a quello di prima</span>
+        for (i = 0; i < larghezza + 2; i++)
+            printf("-");
+
+        printf("\n");
+    }
+
+    <span style="color:lawngreen">/*  Questa function rappresenta il punto cruciale dell'esercizio:
+    Le cellule evolvono secondo la seguente legge: a ogni passo, ogni cellula considera il
+    numero totale di cellule nere presenti nelle 9 caselle vicine (la casella della cellula stessa
+    e le 8 caselle adiacenti, comprese le 4 sulle diagonali). Se il totale e' minore di 4, allora la
+    cellula diventa bianca al prossimo passo, mentre se il totale e' maggiore di 6 allora
+    diventa nera. Se il totale e' esattamente 5, allora la cellula diventa bianca, e se il totale e'
+    esattamente 4, allora diventa nera. La scacchiera deve essere aggiornata solo alla fine di ogni passo:
+    ciò significa che l’algoritmo deve usare un array per memorizzare la scacchiera attuale e un array per
+    memorizzare la scacchiera modificata. Inoltre si deve considerare che la scacchiera “non ha bordi”, ovvero
+    il bordo nord e quello sud devono essere considerati contigui e il bordo est e quello ovest devono essere considerati contigui. */</span>
+    void rimescola_dati()
+    {
+        int passo, i, j, m, n, c;
+
+        <span style="color:lawngreen">//Resetta i dati della scacchiera modificata (per una stampa su schermo ottimale)</span>
+        for (i = 0; i < lunghezza; i++)
+            for (j = 0; j < larghezza; j++)
+                scacchiera_mod[i][j] = ' ';
+
+        printf("\n---Ecco come era la scacchiera all'inizio---\n");
+        visualizza_scacchiera(scacchiera);
+
+        for (passo = 1; passo <= 800; passo++)
+        {
+            for (i = 0; i < lunghezza; i++)
+            {
+                for (j = 0; j < larghezza; j++)
+                {
+                    c = 0; <span style="color:lawngreen">//Imposta il contatore a 0</span>
+                    <span style="color:lawngreen">//Inizia dalla diagonale in alto a sinistra della posizione [i][j] e termina con la diagonale in basso a destra</span>
+                    for (m = (i - 1); m <= (i + 1); m++)
+                    {
+                        for (n = (j - 1); n <= (j + 1); n++)
+                        {
+                            <span style="color:lawngreen">/*Questa if assicura il corretto conteggio delle cellule adiacenti: necessaria se la posizione corrente e' ai limiti della scacchiera*/</span>
+                            if (m < 0 || n < 0 || n > lunghezza - 1 || m > larghezza - 1) continue;
+
+                            if (scacchiera[m][n] == '*') c++;
+                        }
+                    }
+
+                    if (c < 4) scacchiera_mod[i][j] = ' '; <span style="color:lawngreen">// Se il totale e' minore di 4, allora la cellula diventerà bianca</span>
+                    if (c > 6) scacchiera_mod[i][j] = '*'; <span style="color:lawngreen">// Se il totale e' maggiore di 6, allora la cellula diventerà nera</span>
+                    if (c == 5) scacchiera_mod[i][j] = ' '; <span style="color:lawngreen">// Se il totale e' uguale a 5, allora la cellula diventerà bianca</span>
+                    if (c == 4) scacchiera_mod[i][j] = '*'; <span style="color:lawngreen">// Se il totale e' uguale a 4, allora la cellula diventerà nera</span>
+                }
+            }
+
+        <span style="color:lawngreen">//Aggiorna la scacchiera principale</span>
+            for (i = 0; i < lunghezza; i++)
+                for (j = 0; j < larghezza; j++)
+                    scacchiera[i][j] = scacchiera_mod[i][j];
+
+        <span style="color:lawngreen">/*L’algoritmo deve visualizzare la scacchiera ai seguenti passi: 1,2,3,4,5,10,20,30,40,50,100,
+        150,200,250,300,350,400,450,500,550,600,700,800, indicando sempre con ‘ ‘ una cellula bianca e con ‘*’ una cellula nera. */</span>
+            if (passo == 1 || passo == 2 || passo == 3 || passo == 4 || passo == 5 || passo == 10 || passo == 20 || passo == 30 || passo == 40 || passo == 50 || passo == 100 || passo == 150 || passo == 200 || passo == 250 || passo == 300 || passo == 350 || passo == 400 || passo == 450 || passo == 500 || passo == 550 || passo == 600 || passo == 700 || passo == 800)
+            {
+                visualizza_scacchiera(scacchiera);
+                printf("\n---Visualizzo il passo n. %d---\n", passo);
+                system("pause");
+            }
+        }
+
+        scegli();
+    }
+            </span>
+</pre>
+<br><br><br />
+
+    <h1>I test:</h1>
+    <h2>Primo Test</h2>
+    Generiamo una scacchiera, tramite la function random.<br>
+    <img src="../images/cellule_test1_inizio.png" width="600" height="500"><br>
+    <br /> Al passo 1 diventerà così... <br />
+    <img src="../images/cellule_test1_passo1.png" width="600" height="500"><br>
+    <br /> ... al passo 2 ... <br />
+    <img src="../images/cellule_test1_passo2.png" width="600" height="500"><br>
+    <br /> ... al passo 3 ... <br />
+    <img src="../images/cellule_test1_passo3.png" width="600" height="500"><br>
+    <br /> ... e infine al passo 4. <br />
+    <img src="../images/cellule_test1_passo4.png" width="600" height="500"><br>
+    <br />Da come possiamo intuire, la scacchiera non cambierà affatto negli step successivi, poiché
+        un qualsiasi punto di quelle 4 coordinate avrà sempre 4 caselle vicine. <br />
+    <br>
+
+    <h2>Secondo Test</h2>
+    Generiamo un'altra scacchiera random.<br>
+    <img src="../images/cellule_test2_inizio.png" width="600" height="500"><br>
+    <br /> Il primo passo <br />
+    <img src="../images/cellule_test2_passo1.png" width="600" height="500"><br>
+    <br /> Il terzo passo <br />
+    <img src="../images/cellule_test2_passo3.png" width="600" height="500"><br>
+    <br /> Il ventesimo passo <br />
+    <img src="../images/cellule_test2_passo20.png" width="600" height="500"><br>
+    <br />In questo caso, non si sono generate caselle vicine l'una con l'altra come nel primo test. <br />
+    <br>
+
+    <h2>Terzo Test</h2>
+    Generiamo, per un'ultima volta, la scacchiera.<br>
+    <img src="../images/cellule_test3_inizio.png" width="600" height="500"><br>
+    <br /> Il passo n. 4 <br />
+    <img src="../images/cellule_test3_passo4.png" width="600" height="500"><br>
+    <br /> Il passo n. 800 <br />
+    <img src="../images/cellule_test3_passo800.png" width="600" height="500"><br>
+    <br /> <br>
+    </div>
+    <div style="text-align: center; font-family: Verdana">
+        <a href="#top">Torna su</a>
+        </div>
+</body>
+</html>

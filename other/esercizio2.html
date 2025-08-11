@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Esercizio 2 - Tartaglia Luca</title>
+    <style>
+        a:link, a:visited {
+            background-color: cornflowerblue;
+            color: white;
+            padding: 15px 25px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        a:hover, a:active {
+            background-color: black;
+        }
+    </style>
+</head>
+<body style="color: rgb(255, 255, 255); background-color: rgb(0, 0, 0)">
+
+    <a id="top"></a>
+    <!--Serve per tornare in alto, quando si e' in fondo alla pagina-->
+
+    <div style="text-align: center; font-family: Verdana">
+        <h1><span style="text-decoration: underline">Progetto Chiamate Telefoniche</span></h1>
+        <img src="../images/menu_chiamate_telefoniche.png" alt="Menu' del programma" width="600" height="160"><br>
+        <br>
+        <a href="../index.html">Ritorna alla pagina pricipale</a>
+        <a href="../C/chiamate_telefoniche.C" target="_blank">Apri il File C</a>
+        <a href="esercizio1.html">Vai all'esercizio 1</a> <br />
+        <br>
+    </div>
+
+    <div style="text-align: justify; font-family: Verdana">
+        <h1>Testo:</h1>
+        <br>
+        Si vuole simulare l’archivio di chiamate di un gestore telefonico. L’archivio risulta
+        mensile (31 giorni). Ogni giorno vengono effettuate al massimo 10 chiamate e il
+        costo al minuto di una chiamata e' di 10 centesimi. Ogni chiamata e' identificata dal
+        numero chiamante, il numero ricevente e la durata della chiamata. Provvedere
+        all’implementazione dell’algoritmo per la simulazione dell’archivio.
+        Permettere, inoltre, all’utente di: <br />
+        <ul>
+            <li>Dato un numero telefonico visualizzare tutte le chiamate con le relative informazioni in un singolo giorno</li>
+            <li>Dato un numero telefonico vedere il costo totale delle chiamate.</li>
+            <li>Data una data visualizzare le informazioni relative alla chiamata piu' costosa (usare un algoritmo ricorsivo con approccio incrementale).</li>
+        </ul>
+        L’archivio può anche essere inizializzato con informazioni casuali. Effettuare almeno due test per ognuna delle opzioni dell’utente.
+        <br>
+        <br>
+        <br>
+        <br>
+
+        <h1>Osserviamo:</h1>
+        Questo programma simula l'archivio mensile di un gestore telefonico. <br />Come dice la traccia:
+        ogni giorno devono essere effettuate al massimo 10 chiamate e il costo al minuto di una chiamata e' di 10 centesimi.<br />
+        Ogni chiamata e' identificata dal numero chiamante, il numero ricevente e la durata della chiamata.
+        L’archivio può anche essere inizializzato con informazioni casuali.<br />
+        Nel programma sono inoltre implementate le tre funzioni richieste dalla traccia.
+        <br><br><br>
+
+        <h1>Algoritmo:</h1>
+        <pre><span style="font-family: 'Times New Roman'">
+    #define _CRT_SECURE_NO_WARNINGS <span style="color:lawngreen">//utilizzo questa dicitura per evitare di far generare dei warnings all'IDE Visual Studio</span>
+    #include &#60;stdio.h&#62;
+    #include &#60;stdlib.h&#62;
+    #include &#60;time.h&#62;
+    #include &#60;string.h&#62;
+
+    typedef enum { false, true } bool; <span style="color:lawngreen">//Definiamo il tipo booleano</span>
+
+        <span style="color:lawngreen">/* Questa struct definisce il tipo 'chiamata': gli id sono altro che gli indici dell'array di stringhe 'numeri'
+    La durata viene intesa in secondi.*/</span>
+    typedef struct chiamata {
+        int id_chiamante;
+        int id_ricevente;
+        int durata;
+    } Chiamata;
+
+        <span style="color:lawngreen">/* Come specificato nella traccia, l'archivio deve essere grande di un mese (31 giorni) e ciascun giorno può contenere al massimo 10 chiamate.
+    Quindi, creiamo un nuovo tipo che lo rappresenti.*/</span>
+    typedef struct archivio {
+        Chiamata mensile[10][31];
+    } Archivio;
+
+
+        <span style="color:lawngreen">/* Area dichiarazioni */</span>
+    char* numeri[50] = { "3281883366", "3281873963" };
+    int quantita = 2;
+    Archivio chiamate;
+    bool auto_generato = false;
+
+    void scegli();
+    void auto_genera();
+    void inserisci_dati(int, int, int, int);
+    void inserisci_chiamata();
+    void visualizza_numeri();
+    void visualizza_chiamate();
+    void visualizza(int, int);
+    double calcola_costo(int);
+    int chiamata_cara(Chiamata*, int, int);
+    int max_I(int, int, int);
+
+
+        <span style="color:lawngreen">/* Qui non accade nulla di speciale. Imposta dei dati, ma la cosa piu' importante e' che viene richiamata la procedura 'scegli', ovvero il menu' principale */</span>
+    void main()
+    {
+        printf("Progetto d'Esame di Laboratorio\nTitolo Progetto: Chiamate Telefoniche\nStudente: Tartaglia Luca\n\n");
+
+        <span style="color:lawngreen">//inserisce i miei dati</span>
+        chiamate.mensile[0][0].id_chiamante = 0; chiamate.mensile[0][0].id_ricevente = 1; chiamate.mensile[0][0].durata = 120;
+
+        scegli();
+    }
+
+        <span style="color:lawngreen">/* Menu' principale del programma.
+    - Inseriamo 1 se vogliamo far generare i dati in maniera casuale al programma
+    - Inseriamo 2 se vogliamo inserire i dati manualmente
+    - Inseriamo 3 se invece vogliamo visualizzare i dati (qui e' dove vengono sviluppati i punti dell'esercizio)
+    */</span>
+    void scegli()
+    {
+        printf("\n---MENU PRINCIPALE---\nEffettua una scelta:\n");
+        printf(" [1] Genera i dati in modo casuale\n [2] Inserisci i dati manualmente\n [3] Visualizza un elenco di telefonate\n");
+
+        int scelta = 0;
+        scanf("%d", &scelta);
+
+        switch (scelta) {
+            case 1:
+        <span style="color:lawngreen">/* Se i dati sono stati già generati, allora evita di rifarlo. */</span>
+                if (auto_generato == false) auto_genera();
+                else {
+                printf("\nI dati sono gia' stati generati.\n");
+                scegli();
+                }
+                break;
+            case 2:
+                inserisci_chiamata();
+                break;
+            case 3:
+                visualizza_chiamate();
+                break;
+            default:
+                printf("\nLa scelta effettuata non e' valida!\n");
+                scegli();
+                break;
+        }
+    }
+
+        <span style="color:lawngreen">/* Questa procedura genera in maniera automatica i dati, inseriti poi attraverso la procedura 'inserisci dati' in 'chiamate' */</span>
+    void auto_genera()
+    {
+        int i, j, num = 10, c;
+
+        printf("Quanti numeri di cellulare vorresti generare? ");
+        scanf("%d", &num);
+        if (num > 50 || num < 2) num = 50; <span style="color:lawngreen">//regola automaticamente se sono stati inseriti piu' di 50 numeri</span>
+
+        srand(time(NULL));
+
+        <span style="color:lawngreen">//genera dei prefissi italiani (3xx xxx xxxx)</span>
+        for (i = 0; i < num; i++)
+        {
+            c = 3000000000 + rand() % 999999999;
+            numeri[i] = malloc(10);
+            sprintf(numeri[i], "%lu", c);  <span style="color:lawngreen">//utilizziamo la function sprintf per convertire l'intero in stringa (e copiarlo nell'array di stringhe 'numeri')</span>
+        }
+
+        quantita = num;
+
+        for (i = 0; i < 31; i++)
+        {
+            for (j = 0; j < 10; j++)
+            {
+        <span style="color:lawngreen">/* Genera due id (il primo compreso riguarda l'id-chiamante, il secondo invece l'id-ricevente),
+                il totale in secondi della durata della telefonata che può variare da 0 a 18.000; poi da in input la i-esima giornata*/</span>
+                inserisci_dati(rand() % num,rand() % num, rand() % 18000, i + 1);
+            }
+        }
+
+        auto_generato = true;
+        scegli(); <span style="color:lawngreen">//torna al menu' principale</span>
+    }
+
+        <span style="color:lawngreen">/* Inserisce i dati nel database (se vogliamo definirlo meglio, in un Array 2D del tipo 'Chiamata')
+    'chiamante', 'ricevente', 'durata', 'giorno' sono tutti valori che vengono dati in input. */</span>
+    void inserisci_dati(int chiamante, int ricevente, int durata, int giorno)
+    {
+        <span style="color:lawngreen">//Effettua prima un piccolo controllo, per verificare se i dati inseriti sono corretti</span>
+        if (giorno > 31 || chiamante >= quantita || ricevente >= quantita || durata <= 0)
+        {
+            printf("\nAlcuni dei dati inseriti sono sbagliati. Per favore riprova!\n");
+            return;
+        }
+
+        <span style="color:lawngreen">//Verifica qual e' l'ultima chiamata registrata del giorno selezionato (controlla se la durata della telefonata e' pari a zero secondi)</span>
+        int i;
+        for (i = 0; i < 10; i++)
+        if (chiamate.mensile[i][giorno - 1].durata == 0) break;
+
+        <span style="color:lawngreen">//Se 'i' eccede il massimo di 10 telefonate giornaliere, allora esce dalla procedura</span>
+        if (i == 10) { printf("\nLimite giornaliero raggiunto! [Giorno %d] Impossibile aggiungere questa chiamata!\n", giorno); return; }
+
+        chiamate.mensile[i][giorno - 1].id_chiamante = chiamante;
+        chiamate.mensile[i][giorno - 1].id_ricevente = ricevente;
+        chiamate.mensile[i][giorno - 1].durata = durata;
+
+        printf("\nRegistro chiamata aggiornato con successo!\n");
+    }
+
+        <span style="color:lawngreen">/* Questa procedura chiede:
+    - se si vuole registrare manualmente un contatto telefonico
+    - se se vuole simulare una telefonata (ovvero, registrarla nel database)
+    - se si vuole tornare al menu' principale */</span>
+    void inserisci_chiamata()
+    {
+        printf("\nQuindi...:\n");
+        printf(" [1] Voglio registrare un numero nell'elenco\n [2] Voglio registrare manualmente una telefonata\n [3] Annulla l'operazione\n");
+
+        int scelta = 0, i = 0, j = 0, d = 0, g = 0;
+        scanf("%d", &scelta);
+
+        switch (scelta) {
+            case 1:
+        <span style="color:lawngreen">/* Registriamo manualmente un numero nell'elenco. Una volta fatto, aumenta di 1 il valore di 'quantita'*/</span>
+                printf("\nImmetti il numero: ");
+                char verifica[10] = ""; numeri[quantita] = malloc(11);  scanf("%10s", numeri[quantita]); <span style="color:lawngreen">//utilizziamo malloc per allocare, siccome numeri[n] non e' stato inizializzato</span>
+                printf("\n\nFATTO! Ho registrato il numero [%s] con ID [%i]\n", numeri[quantita], quantita);
+                quantita++;
+                visualizza_numeri();
+                inserisci_chiamata();
+                break;
+            case 2:
+        <span style="color:lawngreen">/* Registra manualmente nel database i dati di una telefonata... effettuiamo delle simulazioni (mi e' stato utile per il debug) */</span>
+                visualizza_numeri();
+                printf("Inserisci l'ID del numero chiamante: "); scanf("%d", &i);
+                printf("Inserisci l'ID del numero ricevente: "); scanf("%d", &j);
+                printf("Inserisci la durata della telefonata: "); scanf("%d", &d);
+                printf("Inserisci il giorno della telefonata: "); scanf("%d", &g);
+                inserisci_dati(i, j, d, g);
+                inserisci_chiamata();
+                break;
+            case 3: scegli(); break; <span style="color:lawngreen">//torna nel menu' principale</span>
+        }
+    }
+
+        <span style="color:lawngreen">/* Visualizza tutti i numeri salvati (in parole povere, visualizza l'array di stringhe 'numeri')
+    Molto utile quando bisogna selezionare l'ID del contatto interessato. */</span>
+    void visualizza_numeri()
+    {
+        printf("\n---Visualizzo i numeri salvati---\n");
+        int i;
+        for (i = 0; i < quantita; i++)
+        {
+            printf("Id: %d - Numero: %s\n", i, numeri[i]);
+        }
+        printf("\n");
+    }
+
+        <span style="color:lawngreen">/* In questa procedura viene chiesto:
+    - se si vogliono visualizzare tutte le chiamate registrate (nel corso di tutto il mese)
+    - se si vogliono visualizzare le informazioni specifiche di un contatto (categorizza il tutto per singoli giorni e visualizza il costo totale, rispondendo al primo e al secondo quesito)
+    - se si vuole visualizzare la chiamata piu' costosa del giorno specificato (rispondendo al terzo quesito)*/</span>
+    void visualizza_chiamate()
+    {
+        printf("\nScegli:\n");
+        printf(" [1] Visualizza tutte le chiamate\n [2] Visualizza le informazioni specifiche di un contatto\n [3] Visualizza la chiamata piu' costosa del giorno\n");
+
+        int scelta = 0, i, j, sel = 0;
+        double totale = 0;
+        bool cambia = false;
+        scanf("%d", &scelta);
+
+
+        switch (scelta) {
+            case 1:
+        <span style="color:lawngreen">/* Visualizza tutte le chiamate dell'archivio! */</span>
+                printf("\n---Visualizzo tutte le chiamate---");
+                for (i = 0; i < 31; i++)
+                {
+                    for (j = 0; j < 10; j++)
+                    {
+                        if (chiamate.mensile[j][i].durata > 0)
+                        {
+        <span style="color:lawngreen">//controlla se la durata della chiamata e' maggiore di 0. In tal caso, la mostra. Inoltre, visualizza la data (potrebbe risultare utile)</span>
+                            visualizza(j, i);
+                            printf("- Data: %d", i + 1);
+                        }
+                    }
+                }
+
+                printf("\n---Fine visualizzazione---\n");
+                break;
+            case 2:
+        <span style="color:lawngreen">/* In questo caso, rispondiamo alla prima e alla seconda domanda del quesito: */</span>
+                visualizza_numeri();
+                printf("Inserisci l'ID del contatto interessato: "); scanf("%d", &sel);
+                for (i = 0; i < 31; i++)
+                {
+                    for (j = 0; j < 10; j++)
+                    {
+                        if (chiamate.mensile[j][i].id_chiamante == sel && chiamate.mensile[j][i].durata > 0)
+                        {
+        <span style="color:lawngreen">//Se e' la prima volta che visualizza questa i-esima giornata, allora mostra un messaggio esplicativo</span>
+                            if (cambia == false)
+                            {
+                                printf("\n- Visualizzo le informazioni relative al giorno %d -\n", i + 1);
+                                cambia = true;
+                            }
+
+                            visualizza(j, i);
+                            printf("- Costo: %3.2f\n", calcola_costo(chiamate.mensile[j][i].durata)); <span style="color:lawngreen">//stampa soltanto le prime tre cifre intere e le prime due decimali, dopo la virgola</span>
+                            totale += calcola_costo(chiamate.mensile[j][i].durata);  <span style="color:lawngreen">//aggiunge al costo totale</span>
+                        }
+                    }
+
+                    cambia = false;
+                }
+                printf("\n\n$ In totale, questo contatto ha speso: %3.2f euro\n", totale);  <span style="color:lawngreen">//visualizza il costo totale</span>
+                break;
+            case 3:
+        <span style="color:lawngreen">/* Risponde alla terza domanda del quesito, data una data visualizza le informazioni relative alla chiamata piu' costosa */</span>
+                printf("Inserisci il giorno del mese: "); scanf("%d", &sel);
+
+        <span style="color:lawngreen">//Controlla che tutto sia a posto...</span>
+                if (sel > 0 && sel < 32)
+                {
+                    printf("La chiamata piu' costosa del giorno %d e': ", sel);
+                    visualizza(chiamata_cara(chiamate.mensile, 10, sel - 1), sel - 1); <span style="color:lawngreen">//il valore dell'indice del valore massimo viene passato attraverso la funzione ricorsiva 'chiamata_cara'</span>
+                }
+
+                break;
+        }
+
+        scegli(); <span style="color:lawngreen">//torna al menu' principale</span>
+    }
+
+        <span style="color:lawngreen">/* Visualizza le informazioni della chiamata. Questa procedura viene utilizzata da 'visualizza_chiamate' */</span>
+    void visualizza(int x, int y)
+    {
+        printf("\n * Chiamante: %s - Ricevente: %s - Durata: %d ", numeri[chiamate.mensile[x][y].id_chiamante], numeri[chiamate.mensile[x][y].id_ricevente], chiamate.mensile[x][y].durata);
+    }
+
+        <span style="color:lawngreen">/* Piccola e semplice function per calcolare il costo delle telefonate */</span>
+    double calcola_costo(int secondi)
+    {
+        return (secondi / 60) * 0.10; <span style="color:lawngreen">//Come specificato dalla traccia, ogni minuto costa 10 centesimi</span>
+    }
+
+        <span style="color:lawngreen">/* Data una data visualizzare le informazioni relative alla chiamata piu' costosa
+    (usare un algoritmo ricorsivo con approccio incrementale).
+    *a e' il valore in input passato da chiamata.mensile
+    n e' il fattoriale, in input 10 (poiché, come specifica la traccia bisogna fare al massimo 10 chiamate per giorno)
+    m e' il numero in input della colonna dell'array2D (ovvero il mese) */</span>
+    int chiamata_cara(Chiamata *a, int n, int m)
+    {
+        if (n == 1)
+        <span style="color:lawngreen">//soluzione del caso base</span>
+            return 0;
+        else
+        <span style="color:lawngreen">//autoattivazione</span>
+            return max_I(n - 1, chiamata_cara(a, n - 1, m), m);
+    }
+
+        <span style="color:lawngreen">/* Questa function e' il continuo della function chiamata_cara
+    x e y sono i valori delle righe dell'array 'chiamate' che vanno confrontati (per vedere qual e' il maggiore fra i due)
+    m, come detto prima, e' il numero della colonna dell'array2D */</span>
+    int max_I(int x, int y, int m)
+    {
+        if (calcola_costo(chiamate.mensile[x][m].durata) >= calcola_costo(chiamate.mensile[y][m].durata))
+            return x;
+        else
+            return y;
+    }
+
+    </span>
+    </pre>
+        <br><br><br />
+
+        <h1>I test:</h1>
+        <h2>Primo Test</h2>
+        Utilizziamo la prima opzione proposta per generare 15 numeri di cellulare casuali.<br>
+        <img src="../images/chiamate_test1_1.png" width="400" height="150"><br>
+        <br /> Questa function non ha solo generato i numeri, ma ha anche "randomizzato" (cioe', generato a caso) l'intero database mensile. <br />
+        Per verificare cio', sfruttiamo l'apposita opzione. <br />
+        <img src="../images/chiamate_test1_2.png" width="550" height="400"><br>
+        <br /> Adesso, selezioniamo un numero telefonico per richiedere l'elenco delle sue telefonate effettuate. <br />
+        <img src="../images/chiamate_test1_3.png" width="550" height="370"><br>
+        <br /> Eccole qua! <br />
+        <img src="../images/chiamate_test1_4.png" width="550" height="450"><br>
+        <br /> Vogliamo adesso visualizzare la chiamata piu' costosa del 31esimo giorno del mese <br />
+        <img src="../images/chiamate_test1_5.png" width="420" height="130"><br>
+        <br />Perfetto. Se si vuole, e' possibile verificare cio' tramite l'opzione che ho mostrato prima: 'Visualizza tutte le chiamate'<br />
+        <img src="../images/chiamate_test1_6.png" width="550" height="330"><br>
+        <br /> Come vediamo, nel giorno 31 la telefonata del numero 3000004239 e' quella con maggiore durata, quindi di maggior costo<br />
+        <br>
+
+        <h2>Secondo Test</h2>
+        Di nuovo, generiamo in maniera casuale 50 numeri di cellulare (per farlo, e' necessario riavviare il programma).<br>
+        <br /> Selezioniamo il contatto con ID 25 e verifichiamo le sue telefonate. <br />
+        <img src="../images/chiamate_test2_1.png" width="550" height="350"><br>
+        <br /> Verifichiamo adesso la chiamata di maggior costo del giorno 17. <br />
+        <img src="../images/chiamate_test2_2.png" width="450" height="150"><br>
+        <br /> Controlliamo se e' vero... <br />
+        <img src="../images/chiamate_test2_3.png" width="550" height="350"><br>
+        <br /> Si'! Il numero 3000021182 ha effettuato la chiamata piu' lunga del giorno. <br />
+        <br>
+
+        <h2>Terzo Test</h2>
+        Adesso, generiamo un nuovo database inserendo manualmente tre numeri di cellulare.<br>
+        <img src="../images/chiamate_test3_1.png" width="400" height="330"><br>
+        <br /> Adesso, simuliamo delle telefonate tramite l'apposita opzione. <br />
+        <img src="../images/chiamate_test3_2.png" width="370" height="300"><br>
+        <br />
+        <img src="../images/chiamate_test3_3.png" width="550" height="100"><br>
+        <br /> Verifichiamo. <br />
+        <img src="../images/chiamate_test3_4.png" width="550" height="220"><br>
+        <img src="../images/chiamate_test3_5.png" width="550" height="150"><br>
+        <br /> <br>
+    </div>
+    <div style="text-align: center; font-family: Verdana">
+        <a href="#top">Torna su</a>
+    </div>
+</body>
+</html>
